@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Laboratorium Galvaza: instrumen visual IPA untuk SMP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Identitas: kanvas gelap seperti layar alat ukur, panel kertas dengan skala penggaris (motif tick), satu aksen hijau reagen. */
+:root{--ink:#0f1a20;--ink2:#1b2a33;--paper:#f2eee4;--mute:#464e54;--acc:#c6f432;--hud:#e8eef2}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font:500 15px/1.3 "Bricolage Grotesque",system-ui,sans-serif;background:var(--ink);color:var(--ink);overflow:hidden}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;touch-action:manipulation;border:0}
+button:disabled{cursor:not-allowed;opacity:.5}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px;box-shadow:0 0 0 6px #fff}
+.app{height:100dvh;display:grid;grid-template-rows:auto minmax(0,58fr) 8px minmax(0,42fr);grid-template-areas:"hd" "cv" "rl" "pn";padding-top:env(safe-area-inset-top)}
+.hd{grid-area:hd;padding:6px 10px 8px;color:var(--hud)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:34px}
+h1{font-size:17px;font-weight:700;letter-spacing:.01em}
+#calm{background:transparent;color:var(--hud);border:1.5px solid #6b7c86;border-radius:8px;padding:0 10px;min-height:44px;font-size:12px}
+#calm[aria-pressed=true]{background:var(--hud);color:var(--ink)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tabs button{background:var(--ink2);color:#dce5ea;border-radius:10px;min-height:48px;padding:4px 6px;display:grid;line-height:1.15;text-align:center}
+.tabs b{font-size:14px}.tabs span{font-size:12px}
+.tabs button[aria-selected=true]{background:var(--acc);color:var(--ink)}
+.cvw{grid-area:cv;position:relative;min-height:0}
+#cv{display:block;width:100%;height:100%;touch-action:none}
+.err{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--hud);background:var(--ink)}
+.rule{grid-area:rl;background:var(--paper) repeating-linear-gradient(90deg,var(--ink) 0 1.5px,transparent 1.5px 10px) 0 0/100% 5px no-repeat}
+.pn{grid-area:pn;background:var(--paper);padding:2px 14px calc(8px + env(safe-area-inset-bottom));overflow-y:auto}
+.p{display:grid;gap:2px}.p[hidden]{display:none}
+.sl span{display:flex;justify-content:space-between;font-size:13px;font-weight:700;padding-top:4px}
+output{font:500 13px "DM Mono",ui-monospace,monospace}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:40px;background:transparent}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:var(--trk,linear-gradient(90deg,var(--ink) var(--p,50%),#b7b09f var(--p,50%)))}
+input[type=range]::-moz-range-track{height:8px;border-radius:4px;background:var(--trk,linear-gradient(90deg,var(--ink) var(--p,50%),#b7b09f var(--p,50%)))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-10px;border-radius:7px;background:var(--acc);border:3px solid var(--ink)}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:7px;background:var(--acc);border:3px solid var(--ink)}
+.phs{--trk:linear-gradient(90deg,#b3121f,#ee5a1c 20%,#f3c93a 40%,#3da552 55%,#1d9aa0 65%,#2a5bd0 78%,#40228f)}
+.seg,.row{display:grid;gap:8px;margin-top:4px}
+.seg{grid-template-columns:1fr 1fr}.row{grid-template-columns:1.4fr 1fr 1fr}
+.seg button,.row button,.wide,.sg button{min-height:46px;border-radius:9px;background:#e1dccd;font-weight:700;border:2px solid var(--ink)}
+.seg button[aria-pressed=true],.sg button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.pri{background:var(--acc)!important}.wide{width:100%;margin-top:6px}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.sg button{display:grid;gap:0;padding:2px 4px;font-size:13px;line-height:1.15}
+.sg small{font:500 12px "DM Mono",ui-monospace,monospace}
+.sg i{display:inline-block;width:10px;height:10px;border-radius:3px;border:1.5px solid var(--ink);margin-right:5px;vertical-align:-1px}
+.sg button[aria-pressed=true] i{border-color:#fff}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 0 6px}
+.chips button{flex:none;min-height:44px;padding:0 12px;border-radius:9px;background:#e1dccd;border:2px solid var(--ink);font-weight:700}
+.chips button[aria-pressed=true]{background:var(--ink);color:var(--acc)}
+.card{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:13px}
+.card h2{grid-column:1/-1;font-size:15px}
+.card dt{color:var(--mute);font-size:12px}.card dd{font:500 13px "DM Mono",ui-monospace,monospace}
+.note{font-size:13px;color:var(--mute);margin-top:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (min-width:860px){
+ .app{grid-template-columns:minmax(0,1fr) 400px;grid-template-rows:auto minmax(0,1fr);grid-template-areas:"hd hd" "cv pn"}
+ .rule{display:none}.hd{padding:10px 18px}.tabs{max-width:640px}.pn{padding-top:12px}
+}
+@media (max-height:700px){.tabs button{min-height:44px}.p{gap:0}.sg button,.seg button,.row button{min-height:44px}}
+</style>
+</head>
+<body>
+<div class="app">
+ <header class="hd">
+  <div class="top"><h1>Laboratorium Galvaza</h1><button id="calm" aria-pressed="false">Hentikan gerak latar</button></div>
+  <nav class="tabs" role="tablist" aria-label="Instrumen simulasi">
+   <button role="tab" id="t0" aria-selected="true" aria-controls="p0" aria-label="Fisika: Gaya dan Gerak"><b>Fisika</b><span>Gaya &amp; Gerak</span></button>
+   <button role="tab" id="t1" aria-selected="false" aria-controls="p1" aria-label="Astronomi: Tata Surya 3D" tabindex="-1"><b>Astronomi</b><span>Tata Surya 3D</span></button>
+   <button role="tab" id="t2" aria-selected="false" aria-controls="p2" aria-label="Kimia: Asam dan Basa" tabindex="-1"><b>Kimia</b><span>Asam &amp; Basa</span></button>
+  </nav>
+ </header>
+ <main class="cvw">
+  <canvas id="cv" role="img" aria-label=""></canvas>
+  <p class="err" id="err" hidden>Peramban ini tidak bisa menggambar kanvas. Buka di Chrome, Safari, atau Firefox versi terbaru.</p>
+ </main>
+ <div class="rule" aria-hidden="true"></div>
+ <section class="pn" aria-label="Panel kontrol">
+  <div class="p" role="tabpanel" id="p0" aria-labelledby="t0">
+   <label class="sl"><span>Massa benda <output id="mo">5 kg</output></span><input id="m" type="range" min="1" max="20" step="1" value="5"></label>
+   <label class="sl"><span>Gaya dorong <output id="fo">30 N</output></span><input id="f" type="range" min="0" max="100" step="1" value="30"></label>
+   <div class="seg" role="group" aria-label="Permukaan lintasan"><button data-s="0" aria-pressed="true">Licin</button><button data-s="1" aria-pressed="false">Kasar</button></div>
+   <div class="row"><button id="go" class="pri">Mulai</button><button id="pz" disabled>Jeda</button><button id="rs">Reset</button></div>
+  </div>
+  <div class="p" role="tabpanel" id="p1" aria-labelledby="t1" hidden>
+   <label class="sl"><span>Kecepatan waktu <output id="so">1x</output></span><input id="sp" type="range" min="0" max="10" step="0.5" value="1"></label>
+   <label class="sl"><span>Zoom <output id="zo">1,0x</output></span><input id="zm" type="range" min="0.5" max="5" step="0.1" value="1"></label>
+   <div class="chips" id="chips" role="group" aria-label="Fokus kamera"></div>
+   <dl class="card" id="card"></dl>
+  </div>
+  <div class="p" role="tabpanel" id="p2" aria-labelledby="t2" hidden>
+   <div class="sg" id="smp" role="group" aria-label="Sampel sehari-hari"></div>
+   <label class="sl"><span>Nilai pH <output id="po">7,0</output></span><input id="ph" class="phs" type="range" min="1" max="14" step="0.1" value="7"></label>
+   <button id="dip" class="wide pri" aria-pressed="false">Celupkan Kertas Lakmus</button>
+   <p class="note" id="lit">Kertas lakmus belum dicelup.</p>
+  </div>
+ </section>
+</div>
+<p class="sr" id="sr" aria-live="polite"></p>
+<script>
+'use strict';
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const cv=$('#cv'),cx=cv.getContext('2d');
+if(!cx){$('#err').hidden=false;throw new Error('canvas')}
+const MONO='"DM Mono",ui-monospace,monospace';
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v)),wrap=(v,p)=>((v%p)+p)%p,lerp=(a,b,t)=>a+(b-a)*t;
+const f1=(n,d=1)=>n.toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});
+const sr=t=>{$('#sr').textContent=t};
+const sl=el=>el.style.setProperty('--p',(el.value-el.min)/(el.max-el.min)*100+'%');
+const txt=(s,x,y,f,c,a='left')=>{cx.font=f;cx.fillStyle=c;cx.textAlign=a;cx.fillText(s,x,y)};
+const rrect=(x,y,w,h,r)=>{cx.beginPath();cx.roundRect?cx.roundRect(x,y,w,h,r):cx.rect(x,y,w,h)};
+let W=1,H=1,tab=0,calm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function fit(){const d=Math.min(devicePixelRatio||1,2),r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=Math.round(W*d);cv.height=Math.round(H*d);cx.setTransform(d,0,0,d,0,0)}
+new ResizeObserver(fit).observe(cv);
+function arrow(x1,y1,x2,y2,c){const a=Math.atan2(y2-y1,x2-x1);cx.strokeStyle=cx.fillStyle=c;cx.lineWidth=4;cx.lineCap='round';cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2-Math.cos(a)*8,y2-Math.sin(a)*8);cx.stroke();cx.beginPath();cx.moveTo(x2,y2);cx.lineTo(x2-14*Math.cos(a-.45),y2-14*Math.sin(a-.45));cx.lineTo(x2-14*Math.cos(a+.45),y2-14*Math.sin(a+.45));cx.fill()}
+
+/* ---------- 1. Fisika: Hukum II Newton ---------- */
+/* Gesekan kinetik = 0,35 x m x g (g = 9,8 m/s2) pada lantai kasar. Gesekan statis menahan benda selama F lebih kecil dari batas itu. */
+const P={m:5,F:30,rough:false,run:false,v:0,s:0,wh:0,sp:[],wd:[],c0:150,bw:100,ty:300,
+ calc(){const fm=this.rough?.35*this.m*9.8:0;
+  if(this.v<=0&&this.F<=fm)return{a:0,f:this.F,net:0,fm};
+  const a=(this.F-fm)/this.m;return{a,f:fm,net:this.F-fm,fm}},
+ step(dt){const c=this.calc();
+  if(this.run){this.v=Math.max(0,this.v+c.a*dt);this.s+=this.v*dt;this.wh+=this.v*dt/.46}
+  for(const p of this.sp){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=380*dt;p.l-=dt}
+  this.sp=this.sp.filter(p=>p.l>0);
+  if(!calm&&this.run&&this.rough&&this.v>.5)for(let i=0;i<2;i++)this.sp.push({x:this.c0+(i?1:-1)*(this.bw/2-22),y:this.ty,vx:-(40+Math.random()*Math.min(this.v,40)*8),vy:-Math.random()*110,l:.4});
+  if(!calm&&this.run&&this.v>8&&this.wd.length<18&&Math.random()<.4)this.wd.push({x:W,y:H*(.1+Math.random()*.45),l:30+Math.random()*60});
+  for(const w of this.wd)w.x-=(Math.min(this.v,60)*30+300)*dt;
+  this.wd=this.wd.filter(w=>w.x+w.l>0)},
+ draw(){const fy=H*.66,ty=fy+H*.075,bb=fy+H*.17,PX=26,s=this.s,c0=W*.46,bw=84+this.m*1.7,bh=30+this.m*.5,wr=12,c=this.calc();
+  this.c0=c0;this.bw=bw;this.ty=ty;
+  let g=cx.createLinearGradient(0,0,0,fy);g.addColorStop(0,'#0b151b');g.addColorStop(1,'#1d303b');cx.fillStyle=g;cx.fillRect(0,0,W,H);
+  for(let x=-wrap(s*PX*.12,170)-170;x<W;x+=170){cx.fillStyle='#14232c';cx.fillRect(x+24,fy*.12,104,fy*.46);cx.fillStyle='#223c49';cx.fillRect(x+30,fy*.12+6,44,fy*.46-12);cx.fillRect(x+78,fy*.12+6,44,fy*.46-12)}
+  for(let x=-wrap(s*PX*.4,250)-250;x<W;x+=250){cx.fillStyle='#1b2e38';cx.fillRect(x,fy-46,170,46);cx.fillStyle='#2c4756';cx.beginPath();cx.moveTo(x+30,fy-46);cx.lineTo(x+60,fy-46);cx.lineTo(x+50,fy-70);cx.lineTo(x+40,fy-70);cx.fill();cx.fillRect(x+40,fy-82,10,13);cx.fillRect(x+100,fy-76,26,30)}
+  cx.fillStyle='#0e191f';cx.fillRect(0,fy,W,H-fy);
+  cx.fillStyle=this.rough?'#4b3c2d':'#2e4755';cx.fillRect(0,fy,W,bb-fy);
+  cx.fillStyle=this.rough?'#6a563f':'#4d6b7b';cx.fillRect(0,fy,W,3);
+  if(this.rough){cx.fillStyle='#2b2218';const k0=Math.floor(s*PX/9);for(let i=0;i<W/9+2;i++){const k=k0+i;cx.fillRect(i*9-wrap(s*PX,9),fy+8+(k*37%7)*9,4,3)}}
+  const L=s-c0/PX,R=s+(W-c0)/PX;
+  for(let k=Math.max(0,Math.ceil(L/2)*2);k<=R;k+=2){const x=c0+(k-s)*PX,M=k%10===0;cx.fillStyle='#e8eef2';cx.fillRect(x-1,bb-(M?16:8),2,M?16:8);if(M)txt(k+' m',x,bb+16,'12px '+MONO,'#e8eef2','center')}
+  cx.fillStyle='rgba(0,0,0,.35)';cx.beginPath();cx.ellipse(c0+8,ty+2,bw*.6,5,0,0,7);cx.fill();
+  const x=c0-bw/2,by=ty-2*wr+2,y=by-bh;
+  cx.fillStyle='#9fb1ba';cx.beginPath();cx.moveTo(x+bw,y);cx.lineTo(x+bw+16,y-10);cx.lineTo(x+bw+16,by-10);cx.lineTo(x+bw,by);cx.fill();
+  cx.fillStyle='#eef4f6';cx.beginPath();cx.moveTo(x,y);cx.lineTo(x+16,y-10);cx.lineTo(x+bw+16,y-10);cx.lineTo(x+bw,y);cx.fill();
+  cx.fillStyle='#c7d4da';cx.fillRect(x,y,bw,bh);cx.fillStyle='#c6f432';cx.fillRect(x,y+bh*.55,bw,4);
+  const n=Math.ceil(this.m/5);for(let i=0;i<n;i++){cx.fillStyle=i%2?'#5d7886':'#4a6270';cx.fillRect(x+12,y-10-i*7-1,bw*.6,7)}
+  txt(this.m+' kg',c0,y+bh*.4,'700 12px '+MONO,'#0f1a20','center');
+  for(const wx of[x+22,x+bw-22]){const wy=ty-wr;cx.fillStyle='#0d1519';cx.beginPath();cx.arc(wx,wy,wr,0,7);cx.fill();cx.strokeStyle='#e8eef2';cx.lineWidth=2;cx.stroke();
+   for(let i=0;i<4;i++){const a=this.wh+i*Math.PI/2;cx.beginPath();cx.moveTo(wx,wy);cx.lineTo(wx+Math.cos(a)*(wr-2),wy+Math.sin(a)*(wr-2));cx.stroke()}
+   cx.fillStyle='#c6f432';cx.beginPath();cx.arc(wx,wy,3,0,7);cx.fill()}
+  cx.strokeStyle='rgba(255,255,255,.3)';cx.lineWidth=1.5;
+  for(const w of this.wd){cx.globalAlpha=.5;cx.beginPath();cx.moveTo(w.x,w.y);cx.lineTo(w.x+w.l*(1+this.v/40),w.y);cx.stroke()}cx.globalAlpha=1;
+  if(this.F>0){const len=10+this.F*.85,ax=x-8,ay=y+bh/2;arrow(ax-len,ay,ax,ay,'#ff3b30');txt('F '+this.F+' N',ax-len,ay-10,'12px '+MONO,'#ff9a92')}
+  if(this.rough&&c.f>0){const len=10+c.f*.85,ax=x+bw-10,ay=ty+14;arrow(ax,ay,ax-len,ay,'#ffa726');txt('f '+f1(c.f)+' N',ax-len,ay+18,'12px '+MONO,'#ffc880')}
+  for(const p of this.sp){cx.strokeStyle=p.l>.2?'#ff3b30':'#ffa726';cx.lineWidth=2;cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(p.x-p.vx*.03,p.y-p.vy*.03);cx.stroke()}
+  rrect(10,10,Math.min(W-20,236),98,10);cx.fillStyle='rgba(8,14,18,.82)';cx.fill();
+  txt('a = '+f1(c.a)+' m/s²',20,30,'500 14px '+MONO,'#e8eef2');
+  txt('v = '+f1(this.v)+' m/s',20,49,'500 14px '+MONO,'#e8eef2');
+  txt('s = '+f1(this.s)+' m',20,68,'500 14px '+MONO,'#e8eef2');
+  txt('F bersih = m × a',20,88,'500 12px '+MONO,'#c6f432');
+  txt(f1(c.net)+' N = '+this.m+' kg × '+f1(c.a)+' m/s²',20,102,'500 12px '+MONO,'#c6f432');
+  const hint=this.run&&this.v<=0&&this.F<=c.fm&&this.rough?'Gaya dorong belum melawan gesekan: kendaraan diam.':(!this.run&&this.s===0?'Siap. Atur massa dan gaya, lalu tekan Mulai.':'');
+  if(hint)txt(hint,W/2,H-12,'500 13px "Bricolage Grotesque",system-ui,sans-serif','#d5e0e6','center')},
+ reset(){this.v=this.s=this.wh=0;this.run=false;this.sp=[];this.wd=[];this.btn()},
+ btn(){$('#go').disabled=this.run;$('#go').textContent=this.s>0?'Lanjutkan':'Mulai';$('#pz').disabled=!this.run}
+};
+$('#m').oninput=e=>{P.m=+e.target.value;$('#mo').textContent=P.m+' kg';sl(e.target)};
+$('#f').oninput=e=>{P.F=+e.target.value;$('#fo').textContent=P.F+' N';sl(e.target)};
+$$('.seg button').forEach(b=>b.onclick=()=>{P.rough=b.dataset.s==='1';$$('.seg button').forEach(o=>o.setAttribute('aria-pressed',o===b));sr('Permukaan '+(P.rough?'kasar':'licin'))});
+$('#go').onclick=()=>{P.run=true;P.btn();sr('Simulasi berjalan')};
+$('#pz').onclick=()=>{P.run=false;P.btn();sr('Simulasi dijeda')};
+$('#rs').onclick=()=>{P.reset();sr('Simulasi diatur ulang')};
+
+/* ---------- 2. Astronomi: Tata Surya 3D (proyeksi perspektif sendiri) ---------- */
+/* Jarak orbit dan ukuran dimampatkan agar semua planet terlihat. Rasio kala revolusi antarplanet memakai data sebenarnya. */
+const PL=[
+{n:'Matahari',c:'#ffb020',r:24,o:0,d:0,dm:'1.392.700 km',j:'Pusat sistem',rt:'±25 hari',rv:'-',z:1.2},
+{n:'Merkurius',c:'#9a948d',r:3.4,o:52,d:88,dm:'4.879 km',j:'57,9 juta km',rt:'58,6 hari',rv:'88 hari',sp:'#6f6a64',z:3.4},
+{n:'Venus',c:'#e3c27a',r:5.8,o:82,d:224.7,dm:'12.104 km',j:'108,2 juta km',rt:'243 hari',rv:'224,7 hari',sp:'#c9a257',z:3.4},
+{n:'Bumi',c:'#3b7dd8',r:6,o:112,d:365.25,dm:'12.756 km',j:'149,6 juta km',rt:'23 jam 56 menit',rv:'365,25 hari',z:3.4},
+{n:'Mars',c:'#c4572f',r:4.5,o:142,d:687,dm:'6.792 km',j:'227,9 juta km',rt:'24 jam 37 menit',rv:'687 hari',sp:'#8f3a1e',z:3.4},
+{n:'Jupiter',c:'#d4a373',r:14,o:176,d:4331,dm:'142.984 km',j:'778,5 juta km',rt:'9 jam 56 menit',rv:'11,86 tahun',z:2},
+{n:'Saturnus',c:'#e2cf9c',r:11.5,o:214,d:10747,dm:'120.536 km',j:'1,43 miliar km',rt:'10 jam 33 menit',rv:'29,46 tahun',z:1.8},
+{n:'Uranus',c:'#7fd6d8',r:8.5,o:246,d:30589,dm:'51.118 km',j:'2,87 miliar km',rt:'17 jam 14 menit',rv:'84 tahun',z:1.8},
+{n:'Neptunus',c:'#3e63d6',r:8.3,o:276,d:59800,dm:'49.528 km',j:'4,50 miliar km',rt:'16 jam 6 menit',rv:'164,8 tahun',z:1.8}];
+const TH0=[0,1.2,2.5,4,5.3,.7,2.2,3.6,5.9];
+const STARS=Array.from({length:80},(_,i)=>({x:(Math.sin(i*91.7)*.5+.5),y:(Math.sin(i*37.3+2)*.5+.5),r:.6+(i%4)*.35}));
+const S={yaw:.5,pitch:.5,zoom:1,zoomT:1,speed:1,t:0,focus:-1,cx:0,cz:0,base:1,idle:true,
+ pos(i,t=this.t){const p=PL[i];if(!i)return[0,0];const a=TH0[i]+t*2*Math.PI/(p.d/365.25*20);return[p.o*Math.cos(a),p.o*Math.sin(a)]},
+ step(dt){this.t+=dt*this.speed;this.zoom+=(this.zoomT-this.zoom)*Math.min(1,dt*6);
+  const[tx,tz]=this.focus>0?this.pos(this.focus):[0,0];this.cx+=(tx-this.cx)*Math.min(1,dt*5);this.cz+=(tz-this.cz)*Math.min(1,dt*5);
+  if(!calm&&!ptr.size&&this.idle)this.yaw+=dt*.04},
+ pr(x,y,z){const cy=Math.cos(this.yaw),sy=Math.sin(this.yaw),cp=Math.cos(this.pitch),sp=Math.sin(this.pitch);
+  x-=this.cx;z-=this.cz;const x1=x*cy+z*sy,z1=-x*sy+z*cy,y1=y*cp-z1*sp,z2=y*sp+z1*cp,k=this.base*this.zoom*600/(600+z2);
+  return{x:W/2+x1*k,y:H/2-y1*k,z:z2,s:k}},
+ ring(it,front){const{p,pp,w}=it,T=.47;
+  for(const m of[1.55,1.8,2.05]){const pts=[];for(let k=0;k<=64;k++){const a=k/64*Math.PI*2;pts.push(this.pr(w[0]+p.r*m*Math.cos(a)*Math.cos(T),p.r*m*Math.cos(a)*Math.sin(T),w[1]+p.r*m*Math.sin(a)))}
+   cx.strokeStyle=m===1.8?'rgba(185,160,110,.9)':'rgba(226,207,156,.75)';cx.lineWidth=Math.max(1.5,p.r*pp.s*.18);cx.beginPath();
+   for(let k=0;k<64;k++){const a=pts[k],b=pts[k+1];if(((a.z+b.z)/2<=pp.z)===front){cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y)}}cx.stroke()}},
+ tex(p,x,y,r){
+  if(p.n==='Jupiter'||p.n==='Saturnus'){const cs=p.n==='Jupiter'?['#b9774a','#ecd9bd','#a65f3a']:['#c9b27c','#f0e2bb'];cx.globalAlpha=.55;for(let i=-4;i<=4;i++){cx.fillStyle=cs[wrap(i,cs.length)];cx.fillRect(x-r,y+i*r*.22-r*.07,r*2,r*.14)}cx.globalAlpha=1}
+  else if(p.n==='Bumi'){cx.fillStyle='#4f9d57';for(const[a,b,s]of[[-.3,-.2,.38],[.35,.1,.3],[-.1,.5,.25]]){cx.beginPath();cx.ellipse(x+wrap(a*r+this.t*r*.25+r,2.2*r)-r*1.1,y+b*r,s*r,s*r*.7,0,0,7);cx.fill()}cx.strokeStyle='rgba(255,255,255,.55)';cx.lineWidth=Math.max(1,r*.1);cx.beginPath();cx.arc(x,y,r*.6,.3,1.6);cx.stroke()}
+  else if(p.sp){cx.fillStyle=p.sp;for(const[a,b,s]of[[-.35,-.25,.3],[.3,.2,.25],[-.1,.45,.2]]){cx.beginPath();cx.arc(x+a*r,y+b*r,s*r,0,7);cx.fill()}}},
+ body(it,sun){const{p,pp}=it,r=Math.max(2.2,p.r*pp.s),x=pp.x,y=pp.y,dx=sun.x-x,dy=sun.y-y,dl=Math.hypot(dx,dy)||1,hx=x+dx/dl*r*.5,hy=y+dy/dl*r*.5;
+  cx.save();cx.beginPath();cx.arc(x,y,r,0,7);cx.clip();cx.fillStyle=p.c;cx.fillRect(x-r,y-r,r*2,r*2);this.tex(p,x,y,r);
+  const g=cx.createRadialGradient(hx,hy,r*.1,hx,hy,r*1.35);g.addColorStop(0,'rgba(255,255,255,.28)');g.addColorStop(.4,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(2,4,10,.9)');cx.fillStyle=g;cx.fillRect(x-r,y-r,r*2,r*2);cx.restore()},
+ draw(){this.base=Math.min(W,H*1.1)/2/(PL[8].o*1.08);
+  cx.fillStyle='#04070c';cx.fillRect(0,0,W,H);
+  for(const s of STARS){cx.fillStyle='rgba(255,255,255,'+(.35+s.r*.3)+')';cx.fillRect(wrap(s.x*W+this.yaw*30,W),s.y*H,s.r,s.r)}
+  cx.lineWidth=1;cx.strokeStyle='rgba(255,255,255,.17)';
+  for(let i=1;i<9;i++){cx.beginPath();for(let k=0;k<=96;k++){const a=k/96*Math.PI*2,q=this.pr(PL[i].o*Math.cos(a),0,PL[i].o*Math.sin(a));k?cx.lineTo(q.x,q.y):cx.moveTo(q.x,q.y)}cx.stroke()}
+  const sun=this.pr(0,0,0),sr0=PL[0].r*sun.s,pulse=calm?1:1+Math.sin(performance.now()/600)*.05;
+  let g=cx.createRadialGradient(sun.x,sun.y,sr0*.6,sun.x,sun.y,sr0*3.6*pulse);g.addColorStop(0,'rgba(255,170,40,.65)');g.addColorStop(.35,'rgba(255,120,20,.2)');g.addColorStop(1,'rgba(255,100,0,0)');cx.fillStyle=g;cx.fillRect(0,0,W,H);
+  const its=PL.map((p,i)=>{const w=this.pos(i);return{p,i,w,pp:this.pr(w[0],0,w[1])}}).sort((a,b)=>b.pp.z-a.pp.z);
+  for(const it of its){const{p,i,pp}=it,r=Math.max(2.2,p.r*pp.s);
+   if(!i){g=cx.createRadialGradient(pp.x,pp.y,0,pp.x,pp.y,r);g.addColorStop(0,'#fff6c2');g.addColorStop(.7,'#ffb020');g.addColorStop(1,'#ff7a00');cx.fillStyle=g;cx.beginPath();cx.arc(pp.x,pp.y,r,0,7);cx.fill()}
+   else{if(i===6)this.ring(it,false);this.body(it,sun);if(i===6)this.ring(it,true)}
+   if(this.focus===i){cx.strokeStyle='#c6f432';cx.lineWidth=2;cx.setLineDash([5,4]);cx.beginPath();cx.arc(pp.x,pp.y,r+(i===6?p.r*pp.s*1.2:0)+6,0,7);cx.stroke();cx.setLineDash([])}
+   txt(p.n,pp.x+r+6,pp.y+4,'11px '+MONO,this.focus===i?'#c6f432':'#b9c7cf')}
+  txt('Usap untuk memutar, cubit untuk zoom. Jarak dan ukuran dimampatkan.',W/2,H-10,'12px "Bricolage Grotesque",system-ui,sans-serif','#a9b8c1','center')},
+ pick(i){this.focus=i;this.idle=false;this.zoomT=i<0?1:PL[i].z;$('#zm').value=this.zoomT;sl($('#zm'));$('#zo').textContent=f1(this.zoomT)+'x';
+  $$('#chips button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.i===i));
+  const p=PL[i];$('#card').innerHTML=i<0?'<h2>Pilih benda langit untuk melihat data fisisnya.</h2>':`<h2>${p.n}</h2><div><dt>Diameter</dt><dd>${p.dm}</dd></div><div><dt>Jarak rata-rata</dt><dd>${p.j}</dd></div><div><dt>Kala rotasi</dt><dd>${p.rt}</dd></div><div><dt>Kala revolusi</dt><dd>${p.rv}</dd></div>`;
+  sr(i<0?'Kamera menampilkan seluruh tata surya':'Kamera memfokuskan '+p.n)}
+};
+$('#chips').innerHTML=[-1,...PL.keys()].map(i=>`<button data-i="${i}" aria-pressed="${i===-1}">${i<0?'Semua':PL[i].n}</button>`).join('');
+$$('#chips button').forEach(b=>b.onclick=()=>S.pick(+b.dataset.i));
+$('#sp').oninput=e=>{S.speed=+e.target.value;$('#so').textContent=S.speed?f1(S.speed,S.speed%1?1:0)+'x':'0x Berhenti';sl(e.target)};
+$('#zm').oninput=e=>{S.zoomT=+e.target.value;$('#zo').textContent=f1(S.zoomT)+'x';sl(e.target)};
+const ptr=new Map();let pd=0;
+const pinch=()=>{const a=[...ptr.values()];return a.length===2?Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]):0};
+const setZoom=z=>{S.zoomT=clamp(z,.5,5);$('#zm').value=S.zoomT;sl($('#zm'));$('#zo').textContent=f1(S.zoomT)+'x'};
+cv.addEventListener('pointerdown',e=>{if(tab!==1)return;cv.setPointerCapture(e.pointerId);ptr.set(e.pointerId,[e.clientX,e.clientY]);pd=pinch();S.idle=false});
+cv.addEventListener('pointermove',e=>{const o=ptr.get(e.pointerId);if(!o)return;
+ if(ptr.size===1){S.yaw+=(e.clientX-o[0])*.008;S.pitch=clamp(S.pitch+(e.clientY-o[1])*.006,-1.35,1.35)}
+ ptr.set(e.pointerId,[e.clientX,e.clientY]);
+ if(ptr.size===2){const d=pinch();if(pd)setZoom(S.zoomT*d/pd);pd=d}});
+const up=e=>{ptr.delete(e.pointerId);pd=0};
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+cv.addEventListener('wheel',e=>{if(tab!==1)return;e.preventDefault();setZoom(S.zoomT*(e.deltaY<0?1.1:.9))},{passive:false});
+cv.addEventListener('keydown',e=>{if(tab!==1)return;const k=e.key;
+ if(k==='ArrowLeft')S.yaw-=.12;else if(k==='ArrowRight')S.yaw+=.12;else if(k==='ArrowUp')S.pitch=clamp(S.pitch-.08,-1.35,1.35);else if(k==='ArrowDown')S.pitch=clamp(S.pitch+.08,-1.35,1.35);
+ else if(k==='+'||k==='=')setZoom(S.zoomT*1.15);else if(k==='-')setZoom(S.zoomT/1.15);else return;e.preventDefault();S.idle=false});
+
+/* ---------- 3. Kimia: asam, basa, pH ---------- */
+const STOPS=[[1,'#b3121f'],[3,'#ee5a1c'],[5,'#f3c93a'],[7,'#3da552'],[9,'#1d9aa0'],[11,'#2a5bd0'],[14,'#40228f']].map(([p,h])=>[p,[1,3,5].map(i=>parseInt(h.slice(i,i+2),16))]);
+const rgb=a=>`rgb(${a.map(Math.round)})`;
+function liq(ph){for(let i=1;i<STOPS.length;i++)if(ph<=STOPS[i][0]){const[a,ca]=STOPS[i-1],[b,cb]=STOPS[i],t=(ph-a)/(b-a);return ca.map((v,k)=>lerp(v,cb[k],t))}return STOPS.at(-1)[1]}
+const SUP={'-':'⁻',0:'⁰',1:'¹',2:'²',3:'³',4:'⁴',5:'⁵',6:'⁶',7:'⁷',8:'⁸',9:'⁹'};
+const sup=n=>String(n).replace(/./g,c=>SUP[c]);
+const SMP=[['Air Aki',1],['Cuka',2.5],['Air Jeruk',2.2],['Air Murni',7],['Air Sabun',10],['Pemutih',12.5]];
+const C={ph:7,phT:7,t:0,D:0,dipT:0,cap:0,lit:'',ions:Array.from({length:30},(_,i)=>({k:i%2?'h':'o',x:Math.random(),y:Math.random(),vx:0,vy:0})),bub:Array.from({length:14},()=>({x:Math.random(),y:Math.random(),r:1.5+Math.random()*2.5,sp:14+Math.random()*26,ph:Math.random()*6})),
+ geo(){const bh=Math.min(H*.56,240),bw=Math.min(W*.44,180),bx=W*.6,bot=H-18,top=bot-bh;return{bh,bw,bx,bot,top,lv:top+bh*.28,l:bx-bw/2,r:bx+bw/2,lb:bx-bw*.44,rb:bx+bw*.44}},
+ path(g,i){cx.beginPath();cx.moveTo(g.l+i,g.top);cx.lineTo(g.lb+i,g.bot-14);cx.quadraticCurveTo(g.lb+i,g.bot-i,g.lb+14+i,g.bot-i);cx.lineTo(g.rb-14-i,g.bot-i);cx.quadraticCurveTo(g.rb-i,g.bot-i,g.rb-i,g.bot-14);cx.lineTo(g.r-i,g.top)},
+ res(i){const a=clamp((6.7-this.ph)/.6,0,1),b=clamp((this.ph-7.3)/.6,0,1);
+  return i?(a?['#d3372f',a]:['#3a63d1',0]):(b?['#3a63d1',b]:['#d3372f',0])},
+ step(dt){this.t+=dt;this.ph+=(this.phT-this.ph)*Math.min(1,dt*5);
+  this.D=clamp(this.D+(this.dipT?1:-1)*dt/1.1,0,1);if(this.D>.98&&this.dipT)this.cap=Math.min(1,this.cap+dt/2.2);
+  const share=1/(1+Math.pow(10,(this.ph-7)*.45)),nh=Math.round(share*this.ions.length);let h=this.ions.filter(i=>i.k==='h').length;
+  if(h!==nh){const q=this.ions.find(i=>i.k===(h<nh?'o':'h'));if(q)q.k=h<nh?'h':'o'}
+  if(!calm)for(const q of this.ions){q.vx=clamp(q.vx+(Math.random()-.5)*dt*90,-.35,.35);q.vy=clamp(q.vy+(Math.random()-.5)*dt*90,-.35,.35);q.x=clamp(q.x+q.vx*dt,0,1);q.y=clamp(q.y+q.vy*dt,0,1);if(q.x<=0||q.x>=1)q.vx*=-1;if(q.y<=0||q.y>=1)q.vy*=-1}
+  this.share=share;this.note()},
+ note(){let s;const a=this.ph<6.9,b=this.ph>7.1,cat=a?'asam':b?'basa':'netral';
+  if(this.cap<=0)s='Kertas lakmus belum dicelup.';
+  else if(this.cap<1)s='Cairan merambat naik pada kertas, tunggu sebentar.';
+  else s=a?'Lakmus merah tetap merah. Lakmus biru berubah merah. Larutan bersifat asam.':b?'Lakmus merah berubah biru. Lakmus biru tetap biru. Larutan bersifat basa.':'Kedua lakmus tidak berubah warna. Larutan bersifat netral.';
+  if(s!==this.lit){this.lit=s;$('#lit').textContent=s}},
+ draw(){const g=this.geo(),t=this.t;
+  cx.fillStyle='#0c161c';cx.fillRect(0,0,W,H);
+  cx.fillStyle='#16262f';cx.fillRect(0,g.bot+4,W,H);
+  const sh=this.share??.5;
+  cx.fillStyle='#e8eef2';cx.fillRect(12,10,(W-24)*sh,14);cx.fillStyle='#0f1a20';cx.fillRect(12+(W-24)*sh,10,(W-24)*(1-sh),14);
+  cx.strokeStyle='#e8eef2';cx.lineWidth=1.5;cx.strokeRect(12,10,W-24,14);
+  txt('H⁺ (asam)',12,40,'12px '+MONO,'#e8eef2');txt('OH⁻ (basa)',W-12,40,'12px '+MONO,'#e8eef2','right');
+  const ph=this.ph,cat=ph<6.9?'Asam':ph>7.1?'Basa':'Netral',e=Math.ceil(ph);
+  txt('pH '+f1(ph),14,78,'500 30px '+MONO,'#e8eef2');txt(cat,14,98,'700 15px "Bricolage Grotesque",system-ui,sans-serif','#c6f432');
+  txt('[H⁺]',14,120,'12px '+MONO,'#a9b8c1');txt(f1(Math.pow(10,e-ph))+' × 10'+sup(-e),14,136,'12px '+MONO,'#e8eef2');txt('mol/L',14,152,'12px '+MONO,'#a9b8c1');
+  txt('Partikel ilustratif.',14,H-30,'11px '+MONO,'#a9b8c1');txt('pH sampel perkiraan.',14,H-16,'11px '+MONO,'#a9b8c1');
+  cx.fillStyle='rgba(0,0,0,.4)';cx.beginPath();cx.ellipse(g.bx,g.bot+4,g.bw*.5,6,0,0,7);cx.fill();
+  const col=liq(ph);cx.save();this.path(g,3);cx.clip();
+  cx.beginPath();cx.moveTo(g.l,g.lv);for(let x=g.l;x<=g.r;x+=4)cx.lineTo(x,g.lv+(calm?0:Math.sin(x*.05+t*2)*2.5+Math.sin(x*.11-t*3)*1.5));cx.lineTo(g.r,g.bot);cx.lineTo(g.l,g.bot);cx.closePath();
+  const lg=cx.createLinearGradient(0,g.lv,0,g.bot);lg.addColorStop(0,rgb(col.map(v=>lerp(v,255,.12))));lg.addColorStop(1,rgb(col.map(v=>v*.7)));cx.fillStyle=lg;cx.fill();
+  if(!calm)for(const b of this.bub){b.y-=b.sp*(1/60)/(g.bot-g.lv)*1.5;if(b.y<0)b.y+=1;const y=g.bot-6-b.y*(g.bot-g.lv-10);cx.strokeStyle='rgba(255,255,255,.6)';cx.lineWidth=1.2;cx.beginPath();cx.arc(g.bx+(b.x-.5)*g.bw*.7+Math.sin(b.ph+t*3)*3,y,b.r,0,7);cx.stroke()}
+  for(const q of this.ions){const x=g.lb+12+q.x*(g.rb-g.lb-24),y=g.lv+14+q.y*(g.bot-g.lv-28),h=q.k==='h';
+   cx.fillStyle=h?'#fff4d6':'#0f1a20';cx.strokeStyle=h?'#0f1a20':'#fff';cx.lineWidth=1.5;cx.beginPath();cx.arc(x,y,7,0,7);cx.fill();cx.stroke();txt(h?'+':'−',x,y+4,'700 11px '+MONO,h?'#0f1a20':'#fff','center')}
+  cx.restore();
+  const gl=cx.createLinearGradient(g.l,0,g.l+g.bw*.3,0);gl.addColorStop(0,'rgba(255,255,255,.3)');gl.addColorStop(1,'rgba(255,255,255,0)');cx.fillStyle=gl;cx.fillRect(g.l+6,g.top+8,g.bw*.2,g.bh-30);
+  this.path(g,0);cx.strokeStyle='rgba(235,245,250,.8)';cx.lineWidth=3;cx.stroke();
+  cx.beginPath();cx.ellipse(g.bx,g.top,g.bw/2,7,0,0,7);cx.stroke();
+  cx.strokeStyle='rgba(255,255,255,.6)';cx.lineWidth=2;for(let i=1;i<7;i++){const y=g.top+g.bh*i/7,x=g.r-4-(g.r-g.rb)*0;cx.beginPath();cx.moveTo(x,y);cx.lineTo(x-(i%2?10:17),y);cx.stroke()}
+  const len=Math.min(96,Math.max(50,g.top-70)),e1=this.D*this.D*(3-2*this.D),yb=lerp(g.top-12,g.lv+46,e1);
+  [0,1].forEach(i=>{const x=g.bx+(i?24:-24),base=i?'#3a63d1':'#d3372f',[rc,k]=this.res(i),sub=this.D>0?Math.max(0,yb-g.lv):0,wh=Math.min(len,Math.max(sub,this.cap*len));
+   cx.fillStyle=base;rrect(x-9,yb-len,18,len,3);cx.fill();
+   if(wh>0){cx.fillStyle=base;cx.fillStyle=k?rc:base;cx.fillRect(x-9,yb-wh,18,wh);if(!k){cx.fillStyle='rgba(255,255,255,.18)';cx.fillRect(x-9,yb-wh,18,wh)}}
+   cx.strokeStyle='#e8eef2';cx.lineWidth=1.5;rrect(x-9,yb-len,18,len,3);cx.stroke();
+   txt(i?'biru':'merah',x,yb-len-6,'11px '+MONO,'#e8eef2','center')});
+  if(this.D>0&&this.D<1&&!calm){cx.strokeStyle='rgba(255,255,255,.35)';cx.beginPath();cx.ellipse(g.bx,g.lv,30+this.D*10,4,0,0,7);cx.stroke()}}
+};
+$('#smp').innerHTML=SMP.map(([n,v])=>`<button data-v="${v}" aria-pressed="false"><span><i style="background:${rgb(liq(v))}"></i>${n}</span><small>pH ${f1(v)}</small></button>`).join('');
+function setPH(v){C.phT=v;$('#ph').value=v;sl($('#ph'));$('#po').textContent=f1(v);$$('#smp button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===v&&b.dataset.v!==''&&false))}
+$$('#smp button').forEach(b=>b.onclick=()=>{setPH(+b.dataset.v);$$('#smp button').forEach(o=>o.setAttribute('aria-pressed',o===b));sr(b.textContent.trim()+' dipilih')});
+$('#ph').oninput=e=>{setPH(+e.target.value);$$('#smp button').forEach(o=>o.setAttribute('aria-pressed','false'))};
+$('#dip').onclick=()=>{C.dipT=C.dipT?0:1;if(C.dipT&&C.D===0)C.cap=0;$('#dip').setAttribute('aria-pressed',!!C.dipT);$('#dip').textContent=C.dipT?'Angkat Kertas':'Celupkan Kertas Lakmus';sr(C.dipT?'Kertas lakmus dicelupkan':'Kertas lakmus diangkat')};
+
+/* ---------- Tab, jeda gerak latar, loop ---------- */
+const LBL=['Kendaraan uji di lintasan dengan panah gaya dorong dan gaya gesek serta pembacaan percepatan, kecepatan, jarak.','Model tata surya 3D yang bisa diputar dan di-zoom.','Gelas kimia berisi cairan yang warnanya mengikuti nilai pH, dengan kertas lakmus dan partikel H plus dan OH minus.'];
+const MODS=[P,S,C];
+function go(i,focus){tab=i;$$('[role=tab]').forEach((b,k)=>{b.setAttribute('aria-selected',k===i);b.tabIndex=k===i?0:-1});$$('[role=tabpanel]').forEach((p,k)=>p.hidden=k!==i);cv.tabIndex=i===1?0:-1;cv.setAttribute('aria-label',LBL[i]);if(focus)$('#t'+i).focus()}
+$$('[role=tab]').forEach((b,i)=>b.onclick=()=>go(i));
+$('.tabs').addEventListener('keydown',e=>{const k={ArrowLeft:-1,ArrowRight:1}[e.key];if(k)go(wrap(tab+k,3),true);else if(e.key==='Home')go(0,true);else if(e.key==='End')go(2,true)});
+$('#calm').onclick=e=>{calm=!calm;e.currentTarget.setAttribute('aria-pressed',calm);e.currentTarget.textContent=calm?'Nyalakan gerak latar':'Hentikan gerak latar'};
+if(calm){$('#calm').setAttribute('aria-pressed','true');$('#calm').textContent='Nyalakan gerak latar'}
+$$('input[type=range]').forEach(sl);
+go(0);S.pick(-1);P.btn();setPH(7);
+let last=performance.now();
+(function loop(t){const dt=Math.min((t-last)/1000,.05);last=t;const m=MODS[tab];m.step(dt);m.draw();requestAnimationFrame(loop)})(last);
+</script>
+</body>
+</html>
